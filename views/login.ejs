@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - Share Works</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    (function(){ var t = localStorage.getItem('sw-theme'); if(t) document.documentElement.setAttribute('data-theme', t); })();
+  </script>
+</head>
+<body class="auth-page">
+  <!-- 动效背景 -->
+  <div class="bg-canvas" aria-hidden="true">
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
+    <div class="bg-shape shape-4"></div>
+    <div class="bg-shape shape-5"></div>
+    <div class="bg-shape shape-6"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">🎨</div>
+      <h1 class="auth-title">Share Works</h1>
+      <p class="auth-sub">学生 HTML 作品分享平台</p>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <form action="/login" method="POST" class="auth-form">
+        <div class="form-group">
+          <label for="username">用户名</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="输入你的用户名即可登录"
+            maxlength="20"
+            autofocus
+            required
+          >
+          <span class="form-hint">无需密码，直接输入用户名登录 ✨</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">进入 →</button>
+      </form>
+
+      <a href="/" class="auth-guest-link">先逛逛 →</a>
+    </div>
+  </div>
+</body>
+</html>

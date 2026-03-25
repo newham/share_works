@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>Share Works</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">🎨</span>
+        <span class="logo-text">Share Works</span>
+      </a>
+      <nav class="nav">
+        <a href="/" class="nav-link">主页</a>
+        <% if (typeof user !== 'undefined' && user) { %>
+          <a href="/upload" class="nav-link nav-upload">上传作品</a>
+          <span class="nav-user">👤 <%= user.username %></span>
+          <form action="/logout" method="POST" style="display:inline">
+            <button type="submit" class="btn-logout">退出</button>
+          </form>
+        <% } else { %>
+          <a href="/login" class="nav-link nav-login">登录</a>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+  <main class="main-content">
+    <%- body %>
+  </main>
+  <footer class="site-footer">
+    <p>Share Works &nbsp;·&nbsp; 学生作品展示平台</p>
+  </footer>
+</body>
+</html>

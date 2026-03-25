@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>人气统计 - Share Works</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    (function(){ var t = localStorage.getItem('sw-theme'); if(t) document.documentElement.setAttribute('data-theme', t); })();
+  </script>
+  <style>
+    body { background: var(--bg); }
+    .stats-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .stats-legend {
+      display: flex;
+      gap: 20px;
+      font-size: .88rem;
+      color: var(--text-muted);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+    .chart-wrap {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 28px 24px;
+      margin-bottom: 32px;
+    }
+    .chart-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    canvas#voteChart { max-height: 480px; }
+    .ranking-table {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .ranking-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .ranking-table th {
+      padding: 12px 16px;
+      background: var(--bg);
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .ranking-table td {
+      padding: 12px 16px;
+      font-size: .9rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .ranking-table tr:last-child td { border-bottom: none; }
+    .ranking-table tr:hover td { background: var(--bg); }
+    .rank-medal { font-size: 1.1rem; }
+    .rank-score { font-weight: 700; color: var(--primary); }
+    .rank-score.neg { color: var(--error); }
+    .rank-title { font-weight: 600; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rank-actions a {
+      color: var(--primary);
+      font-size: .85rem;
+      font-weight: 600;
+    }
+    .rank-actions a:hover { text-decoration: underline; }
+    .no-data {
+      text-align: center;
+      padding: 60px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">🎨</span>
+        <span class="logo-text">Share Works</span>
+      </a>
+      <nav class="nav">
+        <a href="/" class="nav-link">主页</a>
+        <a href="/stats" class="nav-link active">📊 人气统计</a>
+        <%- include('partials/theme-picker') %>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="stats-header">
+      <div>
+        <h2 class="page-title">📊 人气统计</h2>
+        <p class="page-sub">所有作品按人气分（赞数 - 踩数）降序排列</p>
+      </div>
+      <div class="stats-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#10b981"></div>
+          <span>点赞</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#f43f5e"></div>
+          <span>踩</span>
+        </div>
+      </div>
+    </div>
+
+    <% if (stats.length === 0) { %>
+      <div class="no-data">
+        <div style="font-size:3rem;margin-bottom:12px">📭</div>
+        <p>暂无数据，等同学们上传作品后再来看看吧！</p>
+      </div>
+    <% } else { %>
+      <div class="chart-wrap">
+        <div class="chart-title">柱状图</div>
+        <canvas id="voteChart"></canvas>
+      </div>
+
+      <div class="ranking-table">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>作品</th>
+              <th>作者</th>
+              <th>👍 点赞</th>
+              <th>👎 踩</th>
+              <th>人气分</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% stats.forEach((work, i) => { %>
+              <tr>
+                <td>
+                  <% if (i === 0) { %>
+                    <span class="rank-medal">🥇</span>
+                  <% } else if (i === 1) { %>
+                    <span class="rank-medal">🥈</span>
+                  <% } else if (i === 2) { %>
+                    <span class="rank-medal">🥉</span>
+                  <% } else { %>
+                    <span style="color:var(--text-muted);font-size:.85rem"><%= i + 1 %></span>
+                  <% } %>
+                </td>
+                <td class="rank-title" title="<%= work.title %>"><%= work.title %></td>
+                <td><%= work.username %></td>
+                <td><span style="color:#10b981;font-weight:700"><%= work.likes %></span></td>
+                <td><span style="color:#f43f5e;font-weight:700"><%= work.dislikes %></span></td>
+                <td>
+                  <span class="rank-score<%= work.score < 0 ? ' neg' : '' %>">
+                    <%= work.score >= 0 ? '+' : '' %><%= work.score %>
+                  </span>
+                </td>
+                <td class="rank-actions">
+                  <a href="/works/<%= encodeURIComponent(work.filename) %>" target="_blank">查看 →</a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </main>
+
+  <footer class="site-footer">
+    <p>Share Works &nbsp;·&nbsp; 学生作品展示平台</p>
+  </footer>
+
+  <% if (stats.length > 0) { %>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    const ctx = document.getElementById('voteChart').getContext('2d');
+    const stats = <%- JSON.stringify(stats) %>;
+
+    const titles = stats.map(s => s.title.length > 18 ? s.title.slice(0, 18) + '…' : s.title);
+    const likes  = stats.map(s => s.likes);
+    const dislikes = stats.map(s => s.dislikes);
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: titles,
+        datasets: [
+          {
+            label: '👍 点赞',
+            data: likes,
+            backgroundColor: 'rgba(16,185,129,0.75)',
+            borderColor: '#10b981',
+            borderWidth: 1.5,
+            borderRadius: 6,
+          },
+          {
+            label: '👎 踩',
+            data: dislikes,
+            backgroundColor: 'rgba(244,63,94,0.75)',
+            borderColor: '#f43f5e',
+            borderWidth: 1.5,
+            borderRadius: 6,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: ctx => stats[ctx[0].dataIndex].title,
+              label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 11 }, color: '#6b7280', maxRotation: 30 }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(0,0,0,.05)' },
+            ticks: {
+              font: { size: 11 },
+              color: '#6b7280',
+              stepSize: 1,
+              precision: 0
+            }
+          }
+        }
+      }
+    });
+  </script>
+  <% } %>
+</body>
+</html>

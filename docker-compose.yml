@@ -1,0 +1,26 @@
+# Share Works 学生作品分享平台
+# Docker 部署配置
+
+version: '3.8'
+
+services:
+  share-works:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: share-works
+    ports:
+      - "8888:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      # 持久化数据目录
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

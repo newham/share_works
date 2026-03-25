@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>上传作品 - Share Works</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    (function(){ var t = localStorage.getItem('sw-theme'); if(t) document.documentElement.setAttribute('data-theme', t); })();
+  </script>
+</head>
+<body>
+  <!-- 移动端抽屉 -->
+  <div class="nav-overlay" id="navOverlay"></div>
+  <nav class="nav-drawer" id="navDrawer">
+    <div class="nav-drawer-header">
+      <span class="nav-drawer-title">菜单</span>
+      <button class="nav-drawer-close" id="navCloseBtn" aria-label="关闭">✕</button>
+    </div>
+    <div class="nav-drawer-content">
+      <a href="/" class="nav-link">🏠 主页</a>
+      <a href="/stats" class="nav-link">📊 人气统计</a>
+      <a href="/upload" class="nav-link active">+ 上传作品</a>
+      <div class="drawer-divider"></div>
+      <span class="drawer-user">👤 <%= user.username %></span>
+      <form action="/logout" method="POST">
+        <button type="submit" class="btn-logout btn-full">退出登录</button>
+      </form>
+      <div class="drawer-divider"></div>
+      <div class="drawer-section-label">🎨 主题颜色</div>
+      <div class="drawer-themes" id="drawerThemes"></div>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">🎨</span>
+        <span class="logo-text">Share Works</span>
+      </a>
+      <button class="hamburger" id="hamburgerBtn" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav nav-desktop">
+        <a href="/" class="nav-link">主页</a>
+        <a href="/stats" class="nav-link">📊 统计</a>
+        <a href="/upload" class="nav-link active">上传作品</a>
+        <span class="nav-user">👤 <%= user.username %></span>
+        <form action="/logout" method="POST" style="display:inline">
+          <button type="submit" class="btn-logout">退出</button>
+        </form>
+        <%- include('partials/theme-picker') %>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content upload-page">
+    <div class="upload-container">
+      <h2 class="page-title">上传 HTML 作品</h2>
+      <p class="page-sub">将你的 HTML 文件发布到主页，让同学们看到你的作品</p>
+      <div class="upload-notice">
+        ⚠️ 禁止上传违法、不道德作品，网络环境请共同维护！
+      </div>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <form action="/upload" method="POST" enctype="multipart/form-data" class="upload-form" id="uploadForm">
+        <div class="form-group">
+          <label for="htmlfile">选择 HTML 文件 <span class="required">*</span></label>
+          <div class="file-drop-zone" id="dropZone">
+            <input type="file" name="htmlfile" id="htmlfile" accept=".html" required class="file-input">
+            <div class="drop-content" id="dropContent">
+              <div class="drop-icon">📄</div>
+              <p class="drop-text">点击选择或拖入 .html 文件</p>
+              <p class="drop-hint">最大 5MB</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="title">作品标题</label>
+          <input type="text" id="title" name="title" placeholder="给作品起个名字（不填则使用文件名）" maxlength="50">
+        </div>
+
+        <div class="form-group">
+          <label for="desc">作品描述</label>
+          <textarea id="desc" name="desc" placeholder="简单描述一下这个作品（可选，200字以内）" maxlength="200" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
+          发布作品 🚀
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Share Works &nbsp;·&nbsp; 学生作品展示平台</p>
+  </footer>
+
+  <script src="/js/mobile-nav.js"></script>
+  <script src="/js/upload.js"></script>
+</body>
+</html>

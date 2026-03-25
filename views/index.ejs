@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>主页 - Share Works</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    // 提前应用主题，防止闪烁
+    (function(){ var t = localStorage.getItem('sw-theme'); if(t) document.documentElement.setAttribute('data-theme', t); })();
+  </script>
+</head>
+<body>
+  <!-- 移动端抽屉（放在 body 下，不受 header 约束）-->
+  <div class="nav-overlay" id="navOverlay"></div>
+  <nav class="nav-drawer" id="navDrawer">
+    <div class="nav-drawer-header">
+      <span class="nav-drawer-title">菜单</span>
+      <button class="nav-drawer-close" id="navCloseBtn" aria-label="关闭">✕</button>
+    </div>
+    <div class="nav-drawer-content">
+      <a href="/" class="nav-link active">🏠 主页</a>
+      <a href="/stats" class="nav-link">📊 人气统计</a>
+      <% if (user) { %>
+        <a href="/upload" class="nav-link nav-upload">+ 上传作品</a>
+        <div class="drawer-divider"></div>
+        <span class="drawer-user">👤 <%= user.username %></span>
+        <form action="/logout" method="POST">
+          <button type="submit" class="btn-logout btn-full">退出登录</button>
+        </form>
+      <% } else { %>
+        <a href="/login" class="nav-link nav-login">登录 / 上传作品</a>
+      <% } %>
+      <div class="drawer-divider"></div>
+      <div class="drawer-section-label">🎨 主题颜色</div>
+      <div class="drawer-themes" id="drawerThemes"></div>
+    </div>
+  </nav>
+
+  <!-- 顶部导航 -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">🎨</span>
+        <span class="logo-text">Share Works</span>
+      </a>
+      <!-- 移动端汉堡按钮 -->
+      <button class="hamburger" id="hamburgerBtn" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </button>
+      <!-- 桌面端导航 -->
+      <nav class="nav nav-desktop">
+        <a href="/" class="nav-link active">主页</a>
+        <a href="/stats" class="nav-link">📊 统计</a>
+        <% if (user) { %>
+          <a href="/upload" class="nav-link nav-upload">+ 上传作品</a>
+          <span class="nav-user">👤 <%= user.username %></span>
+          <form action="/logout" method="POST" style="display:inline">
+            <button type="submit" class="btn-logout">退出</button>
+          </form>
+        <% } else { %>
+          <a href="/login" class="nav-link nav-login">登录</a>
+        <% } %>
+        <%- include('partials/theme-picker') %>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- 英雄区 -->
+    <section class="hero">
+      <h2 class="hero-title">同学们的 HTML 作品</h2>
+      <p class="hero-sub">点击作品卡片在新页面预览，登录后可发布自己的作品</p>
+      <% if (!user) { %>
+        <a href="/login" class="btn btn-primary">登录并上传</a>
+      <% } else { %>
+        <a href="/upload" class="btn btn-primary">上传我的作品</a>
+      <% } %>
+    </section>
+
+    <!-- 作品统计 -->
+    <div class="stats-bar">
+      <span>共 <strong><%= works.length %></strong> 件作品</span>
+    </div>
+
+    <!-- 作品网格 -->
+    <% if (works.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p>还没有任何作品，快来发布第一个吧！</p>
+      </div>
+    <% } else { %>
+      <div class="works-grid">
+        <% works.forEach(work => { %>
+          <div class="work-card">
+            <a href="/works/<%= encodeURIComponent(work.filename) %>" target="_blank" class="card-preview-link" rel="noopener noreferrer">
+              <div class="card-thumb">
+                <iframe
+                  src="/works/<%= encodeURIComponent(work.filename) %>"
+                  class="card-iframe"
+                  scrolling="no"
+                  sandbox="allow-scripts allow-same-origin"
+                  loading="lazy"
+                  title="<%= work.title %>"
+                ></iframe>
+                <div class="card-overlay">
+                  <span class="card-open-hint">🔗 点击打开</span>
+                </div>
+              </div>
+            </a>
+            <div class="card-info">
+              <h3 class="card-title">
+                <a href="/works/<%= encodeURIComponent(work.filename) %>" target="_blank" rel="noopener noreferrer">
+                  <%= work.title %>
+                </a>
+              </h3>
+              <% if (work.desc) { %>
+                <p class="card-desc"><%= work.desc %></p>
+              <% } %>
+              <div class="card-meta">
+                <span class="card-author">👤 <%= work.username %></span>
+                <span class="card-date"><%= new Date(work.uploadedAt).toLocaleDateString('zh-CN') %></span>
+              </div>
+              <% if (user) { %>
+              <div class="card-votes" data-filename="<%= work.filename %>">
+                <button class="btn-vote btn-like<%= work.userVote === '1' ? ' active' : '' %>"   data-value="1"  title="赞">
+                  👍 <span class="vote-count"><%= work.likes %></span>
+                </button>
+                <button class="btn-vote btn-dislike<%= work.userVote === '-1' ? ' active' : '' %>" data-value="-1" title="踩">
+                  👎 <span class="vote-count"><%= work.dislikes %></span>
+                </button>
+              </div>
+              <% } else { %>
+              <div class="card-votes card-votes--guest">
+                <span class="vote-stat">👍 <%= work.likes %></span>
+                <span class="vote-stat">👎 <%= work.dislikes %></span>
+              </div>
+              <% } %>
+              <% if (user && user.hash === work.userHash) { %>
+                <form action="/delete/<%= encodeURIComponent(work.filename) %>" method="POST"
+                      onsubmit="return confirm('确认删除这件作品？此操作不可撤销。')">
+                  <button type="submit" class="btn-delete">🗑 删除</button>
+                </form>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </main>
+
+    <footer class="site-footer">
+    <p>Share Works &nbsp;·&nbsp; 学生作品展示平台</p>
+  </footer>
+
+  <script src="/js/mobile-nav.js"></script>
+  <script>
+    // ── 投票交互 ───────────────────────────────────────────────
+    document.querySelectorAll('.card-votes[data-filename]').forEach(container => {
+      const filename = container.dataset.filename;
+      const btnLike   = container.querySelector('.btn-like');
+      const btnDislike = container.querySelector('.btn-dislike');
+
+      // 初始激活态（后端已注入 userVote）
+      function syncState(activeVal) {
+        btnLike.classList.toggle('active',   activeVal === 1);
+        btnDislike.classList.toggle('active', activeVal === -1);
+      }
+
+      // 提取当前数字
+      function getCount(btn) {
+        return parseInt(btn.querySelector('.vote-count').textContent) || 0;
+      }
+
+      function updateCount(btn, delta) {
+        const span = btn.querySelector('.vote-count');
+        span.textContent = Math.max(0, getCount(btn) + delta);
+      }
+
+      btnLike.addEventListener('click', () => {
+        const wasActive = btnLike.classList.contains('active');
+        fetch('/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename, value: 1 })
+        }).then(r => r.json()).then(data => {
+          if (!data.ok) return;
+          // 重新拉取后更新按钮和计数
+          const prev = wasActive ? 1 : 0;
+          // 由于是切换：赞变+1/0，踩方向变为0
+          btnLike.querySelector('.vote-count').textContent   = data.likes;
+          btnDislike.querySelector('.vote-count').textContent = data.dislikes;
+          btnLike.classList.toggle('active',   !wasActive);
+          btnDislike.classList.remove('active');
+        });
+      });
+
+      btnDislike.addEventListener('click', () => {
+        const wasActive = btnDislike.classList.contains('active');
+        fetch('/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename, value: -1 })
+        }).then(r => r.json()).then(data => {
+          if (!data.ok) return;
+          btnLike.querySelector('.vote-count').textContent    = data.likes;
+          btnDislike.querySelector('.vote-count').textContent  = data.dislikes;
+          btnDislike.classList.toggle('active', !wasActive);
+          btnLike.classList.remove('active');
+        });
+      });
+    });
+  </script>
+</body>
+</html>
